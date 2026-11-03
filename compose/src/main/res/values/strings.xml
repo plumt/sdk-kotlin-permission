@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="plumt_permission_rationale_title">Permission needed</string>
+    <string name="plumt_permission_rationale_message">This feature needs your permission to work. Please allow it on the next screen.</string>
+    <string name="plumt_permission_rationale_confirm">Continue</string>
+    <string name="plumt_permission_dismiss">Not now</string>
+    <string name="plumt_permission_settings_title">Allow in settings</string>
+    <string name="plumt_permission_settings_message">The permission was denied. To use this feature, open settings and allow it.</string>
+    <string name="plumt_permission_settings_confirm">Open settings</string>
+</resources>

@@ -1,0 +1,219 @@
+public final class net/plumt/permission/GrantLevel : java/lang/Enum {
+	public static final field FULL Lnet/plumt/permission/GrantLevel;
+	public static final field NONE Lnet/plumt/permission/GrantLevel;
+	public static final field PARTIAL Lnet/plumt/permission/GrantLevel;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lnet/plumt/permission/GrantLevel;
+	public static fun values ()[Lnet/plumt/permission/GrantLevel;
+}
+
+public final class net/plumt/permission/ManifestCheck : java/lang/Enum {
+	public static final field ALWAYS_THROW Lnet/plumt/permission/ManifestCheck;
+	public static final field OFF Lnet/plumt/permission/ManifestCheck;
+	public static final field THROW_IF_DEBUGGABLE Lnet/plumt/permission/ManifestCheck;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lnet/plumt/permission/ManifestCheck;
+	public static fun values ()[Lnet/plumt/permission/ManifestCheck;
+}
+
+public final class net/plumt/permission/MultiplePermissionsStatus {
+	public fun <init> (Ljava/util/Map;)V
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun get (Lnet/plumt/permission/PermissionSpec;)Lnet/plumt/permission/PermissionStatus;
+	public final fun getAllGranted ()Z
+	public final fun getAllUsable ()Z
+	public final fun getAnyPermanentlyDenied ()Z
+	public final fun getNotGranted ()Ljava/util/List;
+	public final fun getOnlySettingsCanHelp ()Z
+	public final fun getShouldShowRationale ()Z
+	public final fun getSpecs ()Ljava/util/List;
+	public final fun getStatuses ()Ljava/util/Map;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/plumt/permission/PermissionConfig {
+	public fun <init> ()V
+	public fun <init> (Lnet/plumt/permission/RequestHistoryStore;Lnet/plumt/permission/ManifestCheck;)V
+	public synthetic fun <init> (Lnet/plumt/permission/RequestHistoryStore;Lnet/plumt/permission/ManifestCheck;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getHistoryStore ()Lnet/plumt/permission/RequestHistoryStore;
+	public final fun getManifestCheck ()Lnet/plumt/permission/ManifestCheck;
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class net/plumt/permission/PermissionEnvironment {
+	public static final field Companion Lnet/plumt/permission/PermissionEnvironment$Companion;
+	public abstract fun getSdkInt ()I
+	public abstract fun isDeclared (Ljava/lang/String;)Z
+}
+
+public final class net/plumt/permission/PermissionEnvironment$Companion {
+	public final fun of (ILjava/util/Set;)Lnet/plumt/permission/PermissionEnvironment;
+	public static synthetic fun of$default (Lnet/plumt/permission/PermissionEnvironment$Companion;ILjava/util/Set;ILjava/lang/Object;)Lnet/plumt/permission/PermissionEnvironment;
+}
+
+public final class net/plumt/permission/PermissionException : java/lang/RuntimeException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public abstract interface class net/plumt/permission/PermissionManager {
+	public static final field Companion Lnet/plumt/permission/PermissionManager$Companion;
+	public abstract fun appSettingsIntent ()Landroid/content/Intent;
+	public abstract fun check (Lnet/plumt/permission/PermissionSpec;Landroid/app/Activity;)Lnet/plumt/permission/PermissionStatus;
+	public static synthetic fun check$default (Lnet/plumt/permission/PermissionManager;Lnet/plumt/permission/PermissionSpec;Landroid/app/Activity;ILjava/lang/Object;)Lnet/plumt/permission/PermissionStatus;
+	public abstract fun checkAll (Ljava/util/List;Landroid/app/Activity;)Lnet/plumt/permission/MultiplePermissionsStatus;
+	public static synthetic fun checkAll$default (Lnet/plumt/permission/PermissionManager;Ljava/util/List;Landroid/app/Activity;ILjava/lang/Object;)Lnet/plumt/permission/MultiplePermissionsStatus;
+	public abstract fun createRequester (Landroidx/activity/result/ActivityResultCaller;Lkotlin/jvm/functions/Function0;Ljava/util/List;Lkotlin/jvm/functions/Function1;)Lnet/plumt/permission/PermissionRequester;
+	public abstract fun createRequester (Landroidx/activity/result/ActivityResultRegistry;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Ljava/util/List;Lkotlin/jvm/functions/Function1;)Lnet/plumt/permission/PermissionRequester;
+	public abstract fun getEnvironment ()Lnet/plumt/permission/PermissionEnvironment;
+	public abstract fun openAppSettings (Landroid/content/Context;)V
+}
+
+public final class net/plumt/permission/PermissionManager$Companion {
+	public final fun create (Landroid/content/Context;Lnet/plumt/permission/PermissionConfig;)Lnet/plumt/permission/PermissionManager;
+	public static synthetic fun create$default (Lnet/plumt/permission/PermissionManager$Companion;Landroid/content/Context;Lnet/plumt/permission/PermissionConfig;ILjava/lang/Object;)Lnet/plumt/permission/PermissionManager;
+}
+
+public final class net/plumt/permission/PermissionManager$DefaultImpls {
+	public static synthetic fun check$default (Lnet/plumt/permission/PermissionManager;Lnet/plumt/permission/PermissionSpec;Landroid/app/Activity;ILjava/lang/Object;)Lnet/plumt/permission/PermissionStatus;
+	public static synthetic fun checkAll$default (Lnet/plumt/permission/PermissionManager;Ljava/util/List;Landroid/app/Activity;ILjava/lang/Object;)Lnet/plumt/permission/MultiplePermissionsStatus;
+}
+
+public final class net/plumt/permission/PermissionManagerKt {
+	public static final fun registerPermissionRequester (Landroidx/activity/ComponentActivity;Lnet/plumt/permission/PermissionManager;Ljava/util/List;Lkotlin/jvm/functions/Function1;)Lnet/plumt/permission/PermissionRequester;
+}
+
+public abstract interface class net/plumt/permission/PermissionRequester {
+	public abstract fun getSpecs ()Ljava/util/List;
+	public abstract fun isRequesting ()Z
+	public abstract fun launch ()Z
+	public abstract fun unregister ()V
+}
+
+public abstract interface class net/plumt/permission/PermissionSpec {
+	public abstract fun getId ()Ljava/lang/String;
+}
+
+public final class net/plumt/permission/PermissionSpecs {
+	public static final field INSTANCE Lnet/plumt/permission/PermissionSpecs;
+	public final fun backgroundLocation (Z)Lnet/plumt/permission/RuntimePermissionSpec;
+	public static synthetic fun backgroundLocation$default (Lnet/plumt/permission/PermissionSpecs;ZILjava/lang/Object;)Lnet/plumt/permission/RuntimePermissionSpec;
+	public final fun bluetooth (ZZZ)Lnet/plumt/permission/RuntimePermissionSpec;
+	public static synthetic fun bluetooth$default (Lnet/plumt/permission/PermissionSpecs;ZZZILjava/lang/Object;)Lnet/plumt/permission/RuntimePermissionSpec;
+	public final fun calendar (ZZ)Lnet/plumt/permission/RuntimePermissionSpec;
+	public static synthetic fun calendar$default (Lnet/plumt/permission/PermissionSpecs;ZZILjava/lang/Object;)Lnet/plumt/permission/RuntimePermissionSpec;
+	public final fun contacts (ZZ)Lnet/plumt/permission/RuntimePermissionSpec;
+	public static synthetic fun contacts$default (Lnet/plumt/permission/PermissionSpecs;ZZILjava/lang/Object;)Lnet/plumt/permission/RuntimePermissionSpec;
+	public final fun getActivityRecognition ()Lnet/plumt/permission/RuntimePermissionSpec;
+	public final fun getCamera ()Lnet/plumt/permission/RuntimePermissionSpec;
+	public final fun getExactAlarm ()Lnet/plumt/permission/SpecialPermissionSpec;
+	public final fun getIgnoreBatteryOptimizations ()Lnet/plumt/permission/SpecialPermissionSpec;
+	public final fun getInstallUnknownApps ()Lnet/plumt/permission/SpecialPermissionSpec;
+	public final fun getMicrophone ()Lnet/plumt/permission/RuntimePermissionSpec;
+	public final fun getNotifications ()Lnet/plumt/permission/RuntimePermissionSpec;
+	public final fun getOverlay ()Lnet/plumt/permission/SpecialPermissionSpec;
+	public final fun location (Z)Lnet/plumt/permission/RuntimePermissionSpec;
+	public static synthetic fun location$default (Lnet/plumt/permission/PermissionSpecs;ZILjava/lang/Object;)Lnet/plumt/permission/RuntimePermissionSpec;
+	public final fun media (ZZ)Lnet/plumt/permission/RuntimePermissionSpec;
+	public static synthetic fun media$default (Lnet/plumt/permission/PermissionSpecs;ZZILjava/lang/Object;)Lnet/plumt/permission/RuntimePermissionSpec;
+}
+
+public abstract interface class net/plumt/permission/PermissionStatus {
+}
+
+public final class net/plumt/permission/PermissionStatus$Denied : net/plumt/permission/PermissionStatus {
+	public fun <init> (Z)V
+	public final fun component1 ()Z
+	public final fun copy (Z)Lnet/plumt/permission/PermissionStatus$Denied;
+	public static synthetic fun copy$default (Lnet/plumt/permission/PermissionStatus$Denied;ZILjava/lang/Object;)Lnet/plumt/permission/PermissionStatus$Denied;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getShouldShowRationale ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/plumt/permission/PermissionStatus$Granted : net/plumt/permission/PermissionStatus {
+	public static final field INSTANCE Lnet/plumt/permission/PermissionStatus$Granted;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/plumt/permission/PermissionStatus$NotApplicable : net/plumt/permission/PermissionStatus {
+	public fun <init> (I)V
+	public final fun component1 ()I
+	public final fun copy (I)Lnet/plumt/permission/PermissionStatus$NotApplicable;
+	public static synthetic fun copy$default (Lnet/plumt/permission/PermissionStatus$NotApplicable;IILjava/lang/Object;)Lnet/plumt/permission/PermissionStatus$NotApplicable;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getSdkInt ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/plumt/permission/PermissionStatus$Partial : net/plumt/permission/PermissionStatus {
+	public fun <init> (Ljava/util/Set;Ljava/util/Set;ZZ)V
+	public final fun component1 ()Ljava/util/Set;
+	public final fun component2 ()Ljava/util/Set;
+	public final fun component3 ()Z
+	public final fun component4 ()Z
+	public final fun copy (Ljava/util/Set;Ljava/util/Set;ZZ)Lnet/plumt/permission/PermissionStatus$Partial;
+	public static synthetic fun copy$default (Lnet/plumt/permission/PermissionStatus$Partial;Ljava/util/Set;Ljava/util/Set;ZZILjava/lang/Object;)Lnet/plumt/permission/PermissionStatus$Partial;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getGranted ()Ljava/util/Set;
+	public final fun getMissing ()Ljava/util/Set;
+	public final fun getShouldShowRationale ()Z
+	public fun hashCode ()I
+	public final fun isMissingPermanentlyDenied ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/plumt/permission/PermissionStatus$PermanentlyDenied : net/plumt/permission/PermissionStatus {
+	public static final field INSTANCE Lnet/plumt/permission/PermissionStatus$PermanentlyDenied;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/plumt/permission/PermissionStatusKt {
+	public static final fun getCanAskAgain (Lnet/plumt/permission/PermissionStatus;)Z
+	public static final fun getNeedsSettings (Lnet/plumt/permission/PermissionStatus;)Z
+	public static final fun getShouldShowRationale (Lnet/plumt/permission/PermissionStatus;)Z
+	public static final fun isFullyGranted (Lnet/plumt/permission/PermissionStatus;)Z
+	public static final fun isUsable (Lnet/plumt/permission/PermissionStatus;)Z
+}
+
+public abstract interface class net/plumt/permission/RequestHistoryStore {
+	public static final field Companion Lnet/plumt/permission/RequestHistoryStore$Companion;
+	public static final field DEFAULT_NAME Ljava/lang/String;
+	public abstract fun clear ()V
+	public abstract fun hasRequested (Ljava/lang/String;)Z
+	public abstract fun isPermanentlyDenied (Ljava/lang/String;)Z
+	public abstract fun record (Ljava/lang/String;Z)V
+}
+
+public final class net/plumt/permission/RequestHistoryStore$Companion {
+	public static final field DEFAULT_NAME Ljava/lang/String;
+	public final fun inMemory ()Lnet/plumt/permission/RequestHistoryStore;
+	public final fun sharedPreferences (Landroid/content/Context;Ljava/lang/String;)Lnet/plumt/permission/RequestHistoryStore;
+	public static synthetic fun sharedPreferences$default (Lnet/plumt/permission/RequestHistoryStore$Companion;Landroid/content/Context;Ljava/lang/String;ILjava/lang/Object;)Lnet/plumt/permission/RequestHistoryStore;
+}
+
+public abstract interface class net/plumt/permission/RuntimePermissionSpec : net/plumt/permission/PermissionSpec {
+	public fun evaluate (Lnet/plumt/permission/PermissionEnvironment;Lkotlin/jvm/functions/Function1;)Lnet/plumt/permission/GrantLevel;
+	public fun nextRequest (Lnet/plumt/permission/PermissionEnvironment;Lkotlin/jvm/functions/Function1;)Ljava/util/List;
+	public abstract fun permissions (Lnet/plumt/permission/PermissionEnvironment;)Ljava/util/List;
+}
+
+public final class net/plumt/permission/RuntimePermissionSpec$DefaultImpls {
+	public static fun evaluate (Lnet/plumt/permission/RuntimePermissionSpec;Lnet/plumt/permission/PermissionEnvironment;Lkotlin/jvm/functions/Function1;)Lnet/plumt/permission/GrantLevel;
+	public static fun nextRequest (Lnet/plumt/permission/RuntimePermissionSpec;Lnet/plumt/permission/PermissionEnvironment;Lkotlin/jvm/functions/Function1;)Ljava/util/List;
+}
+
+public abstract interface class net/plumt/permission/SpecialPermissionSpec : net/plumt/permission/PermissionSpec {
+	public abstract fun getManifestPermission ()Ljava/lang/String;
+	public abstract fun isApplicable (Lnet/plumt/permission/PermissionEnvironment;)Z
+	public abstract fun isGranted (Landroid/content/Context;)Z
+	public abstract fun settingsIntent (Landroid/content/Context;)Landroid/content/Intent;
+}
+

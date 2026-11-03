@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="plumt_permission_rationale_title">권한이 필요합니다</string>
+    <string name="plumt_permission_rationale_message">이 기능을 쓰려면 권한이 필요합니다. 다음 화면에서 허용해 주세요.</string>
+    <string name="plumt_permission_rationale_confirm">계속</string>
+    <string name="plumt_permission_dismiss">나중에</string>
+    <string name="plumt_permission_settings_title">설정에서 허용해 주세요</string>
+    <string name="plumt_permission_settings_message">권한이 거부되어 있습니다. 이 기능을 쓰려면 설정을 열어 권한을 허용해 주세요.</string>
+    <string name="plumt_permission_settings_confirm">설정 열기</string>
+</resources>

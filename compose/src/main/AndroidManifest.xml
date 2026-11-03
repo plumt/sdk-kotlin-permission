@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 권한을 선언하지 않는다. 쓰는 권한은 앱 매니페스트가 선언한다 (README 참고) -->
+<manifest />
