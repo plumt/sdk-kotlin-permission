@@ -30,6 +30,8 @@ android {
 
     testOptions {
         unitTests.isIncludeAndroidResources = true
+        // Robolectric 은 API 레벨마다 android-all 을 올린다 — 여러 API 를 도는 테스트가 기본 힙(512m)을 넘는다
+        unitTests.all { it.maxHeapSize = "1536m" }
     }
 }
 

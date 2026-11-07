@@ -4,20 +4,22 @@ public abstract interface class net/plumt/permission/compose/MultiplePermissions
 }
 
 public final class net/plumt/permission/compose/PermissionComposablesKt {
-	public static final fun rememberMultiplePermissionsState (Ljava/util/List;Lnet/plumt/permission/PermissionManager;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;II)Lnet/plumt/permission/compose/MultiplePermissionsState;
+	public static final fun rememberMultiplePermissionsState (Ljava/util/List;Lnet/plumt/permission/PermissionManager;Ljava/util/List;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;II)Lnet/plumt/permission/compose/MultiplePermissionsState;
 	public static final fun rememberPermissionManager (Lnet/plumt/permission/PermissionConfig;Landroidx/compose/runtime/Composer;II)Lnet/plumt/permission/PermissionManager;
-	public static final fun rememberPermissionState (Lnet/plumt/permission/PermissionSpec;Lnet/plumt/permission/PermissionManager;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;II)Lnet/plumt/permission/compose/PermissionState;
+	public static final fun rememberPermissionState (Lnet/plumt/permission/PermissionSpec;Lnet/plumt/permission/PermissionManager;Ljava/util/List;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;II)Lnet/plumt/permission/compose/PermissionState;
 }
 
 public final class net/plumt/permission/compose/PermissionDialogsKt {
-	public static final fun PermissionFlowDialogs (Lnet/plumt/permission/compose/PermissionRequestState;Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function4;Landroidx/compose/runtime/Composer;II)V
+	public static final fun PermissionFlowDialogs (Lnet/plumt/permission/compose/PermissionRequestState;Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function4;Landroidx/compose/runtime/Composer;II)V
 	public static final fun PermissionRationaleDialog (Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Landroidx/compose/ui/Modifier;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroidx/compose/runtime/Composer;II)V
+	public static final fun PermissionRequirementDialog (Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Landroidx/compose/ui/Modifier;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroidx/compose/runtime/Composer;II)V
 	public static final fun PermissionSettingsDialog (Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Landroidx/compose/ui/Modifier;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroidx/compose/runtime/Composer;II)V
 }
 
 public final class net/plumt/permission/compose/PermissionFlowStep : java/lang/Enum {
 	public static final field NONE Lnet/plumt/permission/compose/PermissionFlowStep;
 	public static final field RATIONALE Lnet/plumt/permission/compose/PermissionFlowStep;
+	public static final field REQUIREMENT Lnet/plumt/permission/compose/PermissionFlowStep;
 	public static final field SETTINGS Lnet/plumt/permission/compose/PermissionFlowStep;
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lnet/plumt/permission/compose/PermissionFlowStep;
@@ -28,8 +30,10 @@ public abstract interface class net/plumt/permission/compose/PermissionRequestSt
 	public abstract fun confirmFlowStep ()V
 	public abstract fun dismissFlowStep ()V
 	public abstract fun getFlowStep ()Lnet/plumt/permission/compose/PermissionFlowStep;
+	public abstract fun getRequirementStatuses ()Ljava/util/Map;
 	public abstract fun isRequesting ()Z
 	public abstract fun launchFlow ()V
+	public abstract fun launchFlow (Lnet/plumt/permission/SettingsPolicy;)V
 	public abstract fun launchRequest ()V
 	public abstract fun openAppSettings ()V
 	public abstract fun refresh ()V

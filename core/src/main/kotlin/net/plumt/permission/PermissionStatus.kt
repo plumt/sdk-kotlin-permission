@@ -3,6 +3,10 @@ package net.plumt.permission
 /**
  * 권한 하나의 현재 상태.
  *
+ * [PermanentlyDenied] 는 요청 전·후 근거 안내 값과 대화상자가 실제로 떴는지로 내린 **추정**이다. 시스템은 영구 거부를 직접
+ * 알려 주지 않는다. 대화상자를 바깥 탭·뒤로가기로 닫은 것은 거부 횟수로 세지 않는다(시스템도 세지 않는다).
+ * 그래서 [PermissionRequester.launch] 는 이 상태에서도 시스템 요청을 보내고, 허용하거나 2초 이상 띄웠다 닫은 결과로 판정을 고친다.
+ *
  * | 상태 | 뜻 | 기능 사용 | 다시 요청 |
  * |---|---|---|---|
  * | [Granted] | 전부 허용 | 가능 | 필요 없음 |
@@ -30,13 +34,18 @@ public sealed interface PermissionStatus {
      * @property granted 허용된 권한
      * @property missing 아직 허용되지 않은 권한
      * @property shouldShowRationale 나머지를 요청하기 전에 근거 안내를 보이라고 시스템이 권하는지
-     * @property isMissingPermanentlyDenied 나머지가 "다시 묻지 않음" 으로 막혔는지 — 참이면 설정 화면에서만 바꿀 수 있다
+     * @property isMissingPermanentlyDenied 나머지가 "다시 묻지 않음" 으로 막혔는지 — 참이면 설정 화면에서만 바꿀 수 있다.
+     *   요청 대화상자에서 선택지(사진 일부·대략적 위치)를 처음 고른 것은 거부가 아니다. 대략적 위치를 이미 가진 채 띄운
+     *   정밀 승격 대화상자를 거절("대략적인 위치 계속 사용")하면 참이 된다(시스템이 더 묻지 않는다).
+     *   사진·동영상 일부 선택이 허용된 동안은 늘 거짓이다 — 시스템이 요청마다 선택 대화상자를 다시 띄운다
+     * @property access 부분 접근의 종류
      */
     public data class Partial(
         val granted: Set<String>,
         val missing: Set<String>,
         val shouldShowRationale: Boolean,
         val isMissingPermanentlyDenied: Boolean,
+        val access: PartialAccess = PartialAccess.SOME_PERMISSIONS,
     ) : PermissionStatus
 
     /**

@@ -20,11 +20,15 @@ public fun PermissionFlowDialogs(
     settings: @Composable (onConfirm: () -> Unit, onDismiss: () -> Unit) -> Unit = { onConfirm, onDismiss ->
         PermissionSettingsDialog(onConfirm = onConfirm, onDismiss = onDismiss)
     },
+    requirement: @Composable (onConfirm: () -> Unit, onDismiss: () -> Unit) -> Unit = { onConfirm, onDismiss ->
+        PermissionRequirementDialog(onConfirm = onConfirm, onDismiss = onDismiss)
+    },
 ) {
     when (state.flowStep) {
         PermissionFlowStep.NONE -> Unit
         PermissionFlowStep.RATIONALE -> rationale(state::confirmFlowStep, state::dismissFlowStep)
         PermissionFlowStep.SETTINGS -> settings(state::confirmFlowStep, state::dismissFlowStep)
+        PermissionFlowStep.REQUIREMENT -> requirement(state::confirmFlowStep, state::dismissFlowStep)
     }
 }
 
@@ -58,6 +62,27 @@ public fun PermissionSettingsDialog(
     title: String = stringResource(R.string.plumt_permission_settings_title),
     text: String = stringResource(R.string.plumt_permission_settings_message),
     confirmLabel: String = stringResource(R.string.plumt_permission_settings_confirm),
+    dismissLabel: String = stringResource(R.string.plumt_permission_dismiss),
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        modifier = modifier,
+        title = { Text(title) },
+        text = { Text(text) },
+        confirmButton = { TextButton(onClick = onConfirm) { Text(confirmLabel) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(dismissLabel) } },
+    )
+}
+
+/** 기본 기능 켜기 안내 대화상자. 요구한 시스템 기능(블루투스·위치 서비스 등)이 아직 꺼져 있을 때 켜기 화면을 다시 연다. */
+@Composable
+public fun PermissionRequirementDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
+    title: String = stringResource(R.string.plumt_permission_requirement_title),
+    text: String = stringResource(R.string.plumt_permission_requirement_message),
+    confirmLabel: String = stringResource(R.string.plumt_permission_requirement_confirm),
     dismissLabel: String = stringResource(R.string.plumt_permission_dismiss),
 ) {
     AlertDialog(

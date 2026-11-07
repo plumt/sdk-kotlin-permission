@@ -93,7 +93,7 @@ class PermissionManagerCheckTest {
         device.grant(COARSE)
         device.rationale += FINE
         val status = fakeManager(context, device).check(PermissionSpecs.location(), activity)
-        assertEquals(PermissionStatus.Partial(setOf(COARSE), setOf(FINE), shouldShowRationale = true, isMissingPermanentlyDenied = false), status)
+        assertEquals(PermissionStatus.Partial(setOf(COARSE), setOf(FINE), shouldShowRationale = true, isMissingPermanentlyDenied = false, access = PartialAccess.APPROXIMATE_LOCATION), status)
     }
 
     @Test
@@ -101,7 +101,7 @@ class PermissionManagerCheckTest {
         device.grant(FINE, COARSE)
         val history = RequestHistoryStore.inMemory().apply { record(BG, permanentlyDenied = true) }
         val status = fakeManager(context, device, sdkInt = 30, history = history).check(PermissionSpecs.backgroundLocation(), activity)
-        assertEquals(PermissionStatus.Partial(setOf(FINE, COARSE), setOf(BG), shouldShowRationale = false, isMissingPermanentlyDenied = true), status)
+        assertEquals(PermissionStatus.Partial(setOf(FINE, COARSE), setOf(BG), shouldShowRationale = false, isMissingPermanentlyDenied = true, access = PartialAccess.FOREGROUND_LOCATION_ONLY), status)
         assertTrue(status.needsSettings)
     }
 
@@ -109,7 +109,7 @@ class PermissionManagerCheckTest {
     fun `사진 일부 선택은 Partial`() {
         device.grant(USER_SELECTED)
         val status = fakeManager(context, device).check(PermissionSpecs.media(), activity)
-        assertEquals(PermissionStatus.Partial(setOf(USER_SELECTED), setOf(IMAGES), false, false), status)
+        assertEquals(PermissionStatus.Partial(setOf(USER_SELECTED), setOf(IMAGES), false, false, PartialAccess.SELECTED_MEDIA), status)
     }
 
     @Test

@@ -52,6 +52,34 @@ public interface RuntimePermissionSpec : PermissionSpec {
      */
     public fun nextRequest(environment: PermissionEnvironment, isGranted: (String) -> Boolean): List<String> =
         permissions(environment).filterNot(isGranted)
+
+    /**
+     * [evaluate] 가 [GrantLevel.PARTIAL] 일 때 어떤 종류의 부분 접근인지. 기본은 [PartialAccess.SOME_PERMISSIONS] 다.
+     * 내장 명세는 사진 일부 선택·대략적 위치·포그라운드 위치만을 가른다.
+     */
+    public fun partialAccess(environment: PermissionEnvironment, isGranted: (String) -> Boolean): PartialAccess =
+        PartialAccess.SOME_PERMISSIONS
+
+    /**
+     * 권한 밖에 앱 매니페스트에 있어야 하는데 빠진 선언(Health Connect 의 권한 근거 화면 등)을 사람이 읽을 문장으로 돌려준다.
+     * 요청 직전 선언 확인([ManifestCheck])이 이 값을 함께 본다. 기본은 없음.
+     */
+    public fun missingDeclarations(context: Context): List<String> = emptyList()
+}
+
+/** 일부 허용([PermissionStatus.Partial])의 종류. [RuntimePermissionSpec.partialAccess] 가 돌려준다. */
+public enum class PartialAccess {
+    /** API 34 이상에서 사용자가 사진·동영상을 일부만 골랐다. 다시 요청하면 선택 화면이 다시 뜬다 */
+    SELECTED_MEDIA,
+
+    /** 정밀 위치를 원했는데 사용자가 대략적 위치만 허용했다 */
+    APPROXIMATE_LOCATION,
+
+    /** 포그라운드 위치만 있고 백그라운드 위치("항상 허용")가 없다 */
+    FOREGROUND_LOCATION_ONLY,
+
+    /** 명세의 권한 가운데 일부만 허용됐다 — 위 어느 것에도 해당하지 않는 경우 */
+    SOME_PERMISSIONS,
 }
 
 /**
@@ -73,6 +101,18 @@ public interface SpecialPermissionSpec : PermissionSpec {
 
     /** 사용자가 이 권한을 켜는 설정 화면의 인텐트. 열 수 없으면 앱 상세 설정 화면으로 대신 연다. */
     public fun settingsIntent(context: Context): Intent
+
+    /**
+     * [manifestPermission] 밖에 앱 매니페스트에 있어야 하는데 빠진 선언(알림 접근·접근성의 `<service>` 등)을
+     * 사람이 읽을 문장으로 돌려준다. 요청 직전 선언 확인([ManifestCheck])이 이 값을 함께 본다. 기본은 없음.
+     */
+    public fun missingDeclarations(context: Context): List<String> = emptyList()
+
+    /**
+     * [settingsIntent] 로 연 화면이 돌아왔을 때 그 결과. 결과 데이터가 필요한 명세(화면 캡처 동의의 토큰)만 구현한다.
+     * 설정 화면을 열 수 없어 앱 상세 설정 화면을 대신 열었을 때는 부르지 않는다. 메인 스레드에서 부른다. 기본은 무시.
+     */
+    public fun onSettingsResult(resultCode: Int, data: Intent?) {}
 }
 
 /** 허용 정도. [RuntimePermissionSpec.evaluate] 가 돌려준다. */

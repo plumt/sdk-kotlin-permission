@@ -24,6 +24,8 @@ android {
 
     testOptions {
         unitTests.isIncludeAndroidResources = true
+        // Robolectric 은 API 레벨마다 android-all 을 올린다 — 여러 API 를 도는 테스트가 기본 힙(512m)을 넘는다
+        unitTests.all { it.maxHeapSize = "1536m" }
     }
 }
 
@@ -38,7 +40,14 @@ kotlin {
 dependencies {
     // ActivityResultCaller·ActivityResultRegistry 가 공개 API 에 드러나므로 api 로 내보낸다
     api(libs.androidx.activity)
+    // SavedStateRegistry 가 공개 API(createRequester)에 드러난다. androidx.activity 가 끌어오는 판과 같다
+    api(libs.androidx.savedstate)
     implementation(libs.androidx.core)
+    // suspend request 의 메인 디스패처·취소. androidx.activity 가 이미 끌어오는 판과 같아 런타임 의존이 늘지 않는다
+    implementation(libs.kotlinx.coroutines.android)
+
+    // 앱 lint 에 매니페스트 선언 검사를 더한다. aar 안의 lint.jar 로 나가 따로 받을 아티팩트가 없다
+    lintPublish(project(":lint"))
 
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)

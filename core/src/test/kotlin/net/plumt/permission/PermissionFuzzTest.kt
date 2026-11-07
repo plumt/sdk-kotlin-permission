@@ -80,7 +80,10 @@ class PermissionFuzzTest {
             var callbacks = 0
             val requester = m.createRequester(registry, "k$iteration", { activity }, specs) { callbacks++ }
             requester.launch()
-            if (registry.launches.isNotEmpty()) {
+            // API 30+ 백그라운드 위치는 따로 요청하므로 요청이 두 번까지 이어질 수 있다
+            var answered = 0
+            while (requester.isRequesting) {
+                check(answered++ < 2) { "iteration=$iteration 요청이 끝나지 않는다" }
                 device.rationale += subset(r)
                 val answer = registry.lastPermissions.associateWith { r.nextBoolean() }
                 answer.filterValues { it }.keys.forEach { device.granted += it }

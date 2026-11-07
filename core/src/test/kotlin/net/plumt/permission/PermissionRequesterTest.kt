@@ -82,7 +82,8 @@ class PermissionRequesterTest {
         assertFalse(r.isRequesting)
         assertEquals(PermissionStatus.Granted, results.single()[PermissionSpecs.camera])
         assertFalse(history.isPermanentlyDenied(CAMERA))
-        assertTrue(history.hasRequested(CAMERA))
+        // 허용된 권한은 이력을 통째로 지워, 나중에 초기화되면 처음 상태로 판정한다
+        assertFalse(history.hasRequested(CAMERA))
     }
 
     @Test
@@ -107,11 +108,12 @@ class PermissionRequesterTest {
     }
 
     @Test
-    fun `처음 요청이 근거 안내 없이 거부되면 아직 Denied(false) 이고 두 번째에 PermanentlyDenied`() {
+    fun `처음 요청이 근거 안내 없이 거부되면 Denied(false) 이고 다음 요청이 화면 없이 끝나면 PermanentlyDenied`() {
         val r = requester(PermissionSpecs.camera)
         r.launch()
         registry.respondPermissions(mapOf(CAMERA to false))
         assertEquals(PermissionStatus.Denied(false), results.last()[PermissionSpecs.camera])
+        device.dialogShown = false
         r.launch()
         registry.respondPermissions(mapOf(CAMERA to false))
         assertEquals(PermissionStatus.PermanentlyDenied, results.last()[PermissionSpecs.camera])

@@ -8,12 +8,15 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.app.AlarmManager
+import android.app.AppOpsManager
 import android.os.Build
 import android.os.PowerManager
+import android.os.Process
 import android.provider.Settings
+import androidx.core.net.toUri
 import net.plumt.permission.GrantLevel
+import net.plumt.permission.PartialAccess
 import net.plumt.permission.PermissionStatus
 import net.plumt.permission.PermissionEnvironment
 import net.plumt.permission.RuntimePermissionSpec
@@ -21,22 +24,27 @@ import net.plumt.permission.SpecialPermissionSpec
 
 /** API 레벨 상수 — 플랫폼 상수를 쓰면 낮은 compileSdk 소비자 쪽 린트가 시끄러워 숫자로 둔다 */
 internal object Api {
+    const val M = 23
+    const val N = 24
     const val O = 26
+    const val O_MR1 = 27
+    const val P = 28
     const val Q = 29
     const val R = 30
     const val S = 31
     const val TIRAMISU = 33
     const val UPSIDE_DOWN_CAKE = 34
+    const val BAKLAVA = 36
 }
 
-/** 권한 하나만 다루는 단순 명세 */
+/** 권한 하나만 다루는 단순 명세. [minSdk] 는 앱 targetSdk 와 기기 API 가운데 낮은 쪽과 견준다 */
 internal data class SinglePermissionSpec(
     override val id: String,
     private val permission: String,
     private val minSdk: Int = 1,
 ) : RuntimePermissionSpec {
     override fun permissions(environment: PermissionEnvironment): List<String> =
-        if (environment.sdkInt >= minSdk) listOf(permission) else emptyList()
+        if (environment.effectiveSdk >= minSdk) listOf(permission) else emptyList()
 }
 
 /** 읽기·쓰기 짝 권한(연락처·캘린더). 둘 다 요청하면 둘 다 있어야 온전하다 */
@@ -68,6 +76,9 @@ internal data class LocationSpec(private val precise: Boolean) : RuntimePermissi
     // 대략 → 정밀 승격도 두 권한을 함께 다시 요청해야 시스템이 선택 대화상자를 띄운다
     override fun nextRequest(environment: PermissionEnvironment, isGranted: (String) -> Boolean): List<String> =
         if (evaluate(environment, isGranted) == GrantLevel.FULL) emptyList() else permissions(environment)
+
+    override fun partialAccess(environment: PermissionEnvironment, isGranted: (String) -> Boolean): PartialAccess =
+        PartialAccess.APPROXIMATE_LOCATION
 
     companion object {
         const val FINE = Manifest.permission.ACCESS_FINE_LOCATION
@@ -116,6 +127,14 @@ internal data class BackgroundLocationSpec(private val precise: Boolean) : Runti
         }
     }
 
+    // 백그라운드가 빠졌으면 다음 요청이 백그라운드라 그것을 먼저 알린다
+    override fun partialAccess(environment: PermissionEnvironment, isGranted: (String) -> Boolean): PartialAccess =
+        if (environment.sdkInt >= Api.Q && !isGranted(BACKGROUND)) {
+            PartialAccess.FOREGROUND_LOCATION_ONLY
+        } else {
+            PartialAccess.APPROXIMATE_LOCATION
+        }
+
     companion object {
         const val BACKGROUND = Manifest.permission.ACCESS_BACKGROUND_LOCATION
     }
@@ -128,6 +147,8 @@ internal data class BackgroundLocationSpec(private val precise: Boolean) : Runti
  *   요청한다. 사용자가 "일부 사진 선택" 을 고르면 그것만 허용돼 [GrantLevel.PARTIAL] 이다
  * - API 33: READ_MEDIA_IMAGES/VIDEO
  * - API 32 이하: READ_EXTERNAL_STORAGE
+ *
+ * API 레벨은 앱 targetSdk 와 기기 API 가운데 낮은 쪽이다 — targetSdk 32 앱은 API 33 기기에서도 READ_EXTERNAL_STORAGE 를 쓴다.
  */
 internal data class MediaSpec(private val images: Boolean, private val video: Boolean) : RuntimePermissionSpec {
     override val id: String = "media." + listOfNotNull("images".takeIf { images }, "video".takeIf { video }).joinToString("+")
@@ -136,19 +157,19 @@ internal data class MediaSpec(private val images: Boolean, private val video: Bo
         listOfNotNull(IMAGES.takeIf { images }, VIDEO.takeIf { video })
 
     override fun permissions(environment: PermissionEnvironment): List<String> = when {
-        environment.sdkInt >= Api.UPSIDE_DOWN_CAKE ->
+        environment.effectiveSdk >= Api.UPSIDE_DOWN_CAKE ->
             mediaPermissions() + listOfNotNull(USER_SELECTED.takeIf { environment.isDeclared(it) })
-        environment.sdkInt >= Api.TIRAMISU -> mediaPermissions()
+        environment.effectiveSdk >= Api.TIRAMISU -> mediaPermissions()
         else -> listOf(LEGACY)
     }
 
     override fun evaluate(environment: PermissionEnvironment, isGranted: (String) -> Boolean): GrantLevel {
-        if (environment.sdkInt < Api.TIRAMISU) {
+        if (environment.effectiveSdk < Api.TIRAMISU) {
             return if (isGranted(LEGACY)) GrantLevel.FULL else GrantLevel.NONE
         }
         val media = mediaPermissions()
         val grantedMedia = media.count(isGranted)
-        val userSelected = environment.sdkInt >= Api.UPSIDE_DOWN_CAKE && isGranted(USER_SELECTED)
+        val userSelected = isUserSelected(environment, isGranted)
         return when {
             grantedMedia == media.size -> GrantLevel.FULL
             grantedMedia > 0 || userSelected -> GrantLevel.PARTIAL
@@ -159,6 +180,17 @@ internal data class MediaSpec(private val images: Boolean, private val video: Bo
     // 일부 선택 상태에서 선택을 넓히려면 USER_SELECTED 를 포함한 전체를 다시 요청해야 선택 대화상자가 뜬다
     override fun nextRequest(environment: PermissionEnvironment, isGranted: (String) -> Boolean): List<String> =
         if (evaluate(environment, isGranted) == GrantLevel.FULL) emptyList() else permissions(environment)
+
+    // 사진은 허용, 동영상은 거부처럼 고른 매체 가운데 일부만 허용이면 일부 선택이 아니다
+    override fun partialAccess(environment: PermissionEnvironment, isGranted: (String) -> Boolean): PartialAccess =
+        if (isUserSelected(environment, isGranted) && mediaPermissions().none(isGranted)) {
+            PartialAccess.SELECTED_MEDIA
+        } else {
+            PartialAccess.SOME_PERMISSIONS
+        }
+
+    private fun isUserSelected(environment: PermissionEnvironment, isGranted: (String) -> Boolean): Boolean =
+        environment.effectiveSdk >= Api.UPSIDE_DOWN_CAKE && isGranted(USER_SELECTED)
 
     companion object {
         const val IMAGES = Manifest.permission.READ_MEDIA_IMAGES
@@ -174,6 +206,8 @@ internal data class MediaSpec(private val images: Boolean, private val video: Bo
  * - API 31 이상: BLUETOOTH_SCAN·CONNECT·ADVERTISE 가 런타임 권한이다
  * - API 30 이하: 연결·광고용 BLUETOOTH/BLUETOOTH_ADMIN 은 설치 시 부여되는 일반 권한이고,
  *   기기 검색에는 위치 권한이 필요하다(API 29~30 은 FINE, 그 아래는 COARSE)
+ *
+ * API 레벨은 앱 targetSdk 와 기기 API 가운데 낮은 쪽이다 — targetSdk 30 앱은 API 31 기기에서도 옛 모델을 쓴다.
  */
 internal data class BluetoothSpec(
     private val scan: Boolean,
@@ -184,13 +218,13 @@ internal data class BluetoothSpec(
         listOfNotNull("scan".takeIf { scan }, "connect".takeIf { connect }, "advertise".takeIf { advertise }).joinToString("+")
 
     override fun permissions(environment: PermissionEnvironment): List<String> = when {
-        environment.sdkInt >= Api.S -> listOfNotNull(
+        environment.effectiveSdk >= Api.S -> listOfNotNull(
             SCAN.takeIf { scan },
             CONNECT.takeIf { connect },
             ADVERTISE.takeIf { advertise },
         )
         !scan -> emptyList()
-        environment.sdkInt >= Api.Q -> listOf(Manifest.permission.ACCESS_FINE_LOCATION)
+        environment.effectiveSdk >= Api.Q -> listOf(Manifest.permission.ACCESS_FINE_LOCATION)
         else -> listOf(Manifest.permission.ACCESS_COARSE_LOCATION)
     }
 
@@ -218,7 +252,7 @@ internal object IgnoreBatteryOptimizationsSpec : SpecialPermissionSpec {
     }
 
     override fun settingsIntent(context: Context): Intent =
-        Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:${context.packageName}"))
+        Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, "package:${context.packageName}".toUri())
 
     override fun toString(): String = "IgnoreBatteryOptimizationsSpec"
 }
@@ -241,12 +275,17 @@ internal object ExactAlarmSpec : SpecialPermissionSpec {
             (context.getSystemService(Context.ALARM_SERVICE) as AlarmManager).canScheduleExactAlarms()
 
     override fun settingsIntent(context: Context): Intent =
-        Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:${context.packageName}"))
+        Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, "package:${context.packageName}".toUri())
 
     override fun toString(): String = "ExactAlarmSpec"
 }
 
-/** 다른 앱 위에 표시(SYSTEM_ALERT_WINDOW). 모든 지원 API 레벨에서 설정 화면으로 켠다 */
+/**
+ * 다른 앱 위에 표시(SYSTEM_ALERT_WINDOW). 모든 지원 API 레벨에서 설정 화면으로 켠다.
+ *
+ * API 26~27 은 설정에서 켜고 돌아온 직후 `canDrawOverlays` 가 한동안 거짓을 돌려주는 플랫폼 결함이 있어,
+ * 그때는 앱 작업(AppOps) 모드가 허용인지도 본다. API 30 이상의 설정 화면은 `package:` 를 무시하고 전체 앱 목록을 연다.
+ */
 internal object OverlaySpec : SpecialPermissionSpec {
     override val id: String = "overlay"
 
@@ -254,10 +293,18 @@ internal object OverlaySpec : SpecialPermissionSpec {
 
     override fun isApplicable(environment: PermissionEnvironment): Boolean = true
 
-    override fun isGranted(context: Context): Boolean = Settings.canDrawOverlays(context)
+    override fun isGranted(context: Context): Boolean =
+        Settings.canDrawOverlays(context) || (Build.VERSION.SDK_INT in Api.O..Api.O_MR1 && isAllowedByAppOps(context))
+
+    private fun isAllowedByAppOps(context: Context): Boolean {
+        val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
+        @Suppress("DEPRECATION")
+        val mode = appOps.checkOpNoThrow(AppOpsManager.OPSTR_SYSTEM_ALERT_WINDOW, Process.myUid(), context.packageName)
+        return mode == AppOpsManager.MODE_ALLOWED
+    }
 
     override fun settingsIntent(context: Context): Intent =
-        Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:${context.packageName}"))
+        Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, "package:${context.packageName}".toUri())
 
     override fun toString(): String = "OverlaySpec"
 }
@@ -282,7 +329,7 @@ internal object InstallUnknownAppsSpec : SpecialPermissionSpec {
         }
 
     override fun settingsIntent(context: Context): Intent =
-        Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:${context.packageName}"))
+        Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, "package:${context.packageName}".toUri())
 
     override fun toString(): String = "InstallUnknownAppsSpec"
 }

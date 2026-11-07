@@ -7,4 +7,7 @@
     <string name="plumt_permission_settings_title">Allow in settings</string>
     <string name="plumt_permission_settings_message">The permission was denied. To use this feature, open settings and allow it.</string>
     <string name="plumt_permission_settings_confirm">Open settings</string>
+    <string name="plumt_permission_requirement_title">Turn on required feature</string>
+    <string name="plumt_permission_requirement_message">A feature this screen needs is turned off. Please turn it on on the next screen.</string>
+    <string name="plumt_permission_requirement_confirm">Turn on</string>
 </resources>
