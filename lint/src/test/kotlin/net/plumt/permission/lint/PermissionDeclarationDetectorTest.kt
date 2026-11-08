@@ -36,6 +36,7 @@ class PermissionDeclarationDetectorTest : LintDetectorTest() {
             val turnScreenOn: Any = Any()
             val userInitiatedJobs: Any = Any()
             val crossProfile: Any = Any()
+            val localNetwork: Any = Any()
             fun deviceAdmin(admin: Any, explanation: String? = null): Any = Any()
             fun screenCapture(onConsent: (Int, Any) -> Unit): Any = Any()
             fun role(role: Any): Any = Any()
@@ -61,11 +62,11 @@ class PermissionDeclarationDetectorTest : LintDetectorTest() {
         """,
     ).indented()
 
-    private fun manifest(minSdk: Int = 23, body: String = "", tools: Boolean = false): TestFile = manifest(
+    private fun manifest(minSdk: Int = 23, body: String = "", tools: Boolean = false, targetSdk: Int = 36): TestFile = manifest(
         """
         <manifest xmlns:android="http://schemas.android.com/apk/res/android"${if (tools) " xmlns:tools=\"http://schemas.android.com/tools\"" else ""}
             package="test.app">
-            <uses-sdk android:minSdkVersion="$minSdk" android:targetSdkVersion="36" />
+            <uses-sdk android:minSdkVersion="$minSdk" android:targetSdkVersion="$targetSdk" />
         $body
             <application />
         </manifest>
@@ -98,6 +99,15 @@ class PermissionDeclarationDetectorTest : LintDetectorTest() {
                 +    <uses-permission android:name="android.permission.CAMERA" />
                 """,
             )
+    }
+
+    fun `test targetSdk 조건이 있는 선언은 그 targetSdk 부터 요구한다`() {
+        // targetSdk 36 이하 앱은 로컬 네트워크 권한을 선언하지 않는다(INTERNET 으로 묵시 허용)
+        lint().files(manifest(targetSdk = 36), stubs, code("PermissionSpecs.localNetwork,")).run().expectClean()
+        lint().files(manifest(targetSdk = 37), stubs, code("PermissionSpecs.localNetwork,"))
+            .run()
+            .expectErrorCount(1)
+            .expectContains("android.permission.ACCESS_LOCAL_NETWORK")
     }
 
     fun `test 선언돼 있으면 조용하다`() {

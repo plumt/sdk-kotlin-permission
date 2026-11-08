@@ -129,7 +129,7 @@ class PermissionDeclarationDetector : Detector(), SourceCodeScanner, XmlScanner 
     }
 
     private fun argumentExpression(context: JavaContext, call: UCallExpression, method: PsiMethod, member: String, name: String): UExpression? {
-        val index = PARAMETER_ORDER[member]?.indexOf(name)?.takeIf { it >= 0 } ?: return null
+        val index = SpecTable.PARAMETER_ORDER[member]?.indexOf(name)?.takeIf { it >= 0 } ?: return null
         val mapping = context.evaluator.computeArgumentMapping(call, method)
         return mapping.entries.firstOrNull { method.parameterList.getParameterIndex(it.value) == index }?.key
     }
@@ -222,10 +222,12 @@ class PermissionDeclarationDetector : Detector(), SourceCodeScanner, XmlScanner 
         val manifest = app.mergedManifest ?: return
         val present = presentDeclarations(manifest)
         val minSdk = app.minSdkVersion.featureLevel
+        val targetSdk = app.targetSdkVersion.featureLevel
         val reported = HashSet<String>()
         for (use in uses) {
             val missing = use.need.required
                 .filter { it.maxSdk == null || it.maxSdk >= minSdk }
+                .filter { it.minTargetSdk == null || targetSdk >= it.minTargetSdk }
                 .filterNot { isDeclared(it, present) }
             if (missing.isEmpty()) continue
             val key = use.location.file.path + ":" + use.location.start?.offset + ":" + missing.joinToString { it.name }
@@ -316,22 +318,6 @@ class PermissionDeclarationDetector : Detector(), SourceCodeScanner, XmlScanner 
         private const val KEY_DECLARED = "declared#"
         private const val KEY_DECLARED_COUNT = "declared.count"
         private const val KEY_DECLARED_LOCATION = "declared.location#"
-
-        /** 컴파일된 매개변수 이름이 없을 수 있어 자리로 읽는다. core 의 함수 시그니처와 같아야 한다 */
-        private val PARAMETER_ORDER: Map<String, List<String>> = mapOf(
-            "location" to listOf("precise"),
-            "backgroundLocation" to listOf("precise"),
-            "media" to listOf("images", "video"),
-            "contacts" to listOf("read", "write"),
-            "calendar" to listOf("read", "write"),
-            "callLog" to listOf("read", "write"),
-            "bluetooth" to listOf("scan", "connect", "advertise"),
-            "storage" to listOf("write"),
-            "sms" to listOf("send", "receive", "read", "receiveMms", "receiveWapPush"),
-            "bodySensors" to listOf("background", "heartRate", "oxygenSaturation", "skinTemperature"),
-            "nearbyWifiDevices" to listOf("legacyLocation"),
-            "healthConnect" to listOf("read", "write"),
-        )
 
         private val IMPLEMENTATION = Implementation(
             PermissionDeclarationDetector::class.java,

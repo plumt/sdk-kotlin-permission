@@ -1,0 +1,71 @@
+public abstract interface class net/plumt/permission/compose/MultiplePermissionsState : net/plumt/permission/compose/PermissionRequestState {
+	public abstract fun getSpecs ()Ljava/util/List;
+	public abstract fun getStatus ()Lnet/plumt/permission/MultiplePermissionsStatus;
+}
+
+public final class net/plumt/permission/compose/PermissionComposablesKt {
+	public static final fun rememberMultiplePermissionsState (Ljava/util/List;Lnet/plumt/permission/PermissionManager;Ljava/util/List;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;II)Lnet/plumt/permission/compose/MultiplePermissionsState;
+	public static final fun rememberPermissionManager (Lnet/plumt/permission/PermissionConfig;Landroidx/compose/runtime/Composer;II)Lnet/plumt/permission/PermissionManager;
+	public static final fun rememberPermissionState (Lnet/plumt/permission/PermissionSpec;Lnet/plumt/permission/PermissionManager;Ljava/util/List;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;II)Lnet/plumt/permission/compose/PermissionState;
+}
+
+public final class net/plumt/permission/compose/PermissionDialogsKt {
+	public static final fun PermissionFlowDialogs (Lnet/plumt/permission/compose/PermissionRequestState;Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function4;Landroidx/compose/runtime/Composer;II)V
+	public static final fun PermissionRationaleDialog (Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Landroidx/compose/ui/Modifier;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroidx/compose/runtime/Composer;II)V
+	public static final fun PermissionRequirementDialog (Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Landroidx/compose/ui/Modifier;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroidx/compose/runtime/Composer;II)V
+	public static final fun PermissionSettingsDialog (Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Landroidx/compose/ui/Modifier;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Landroidx/compose/runtime/Composer;II)V
+}
+
+public abstract interface class net/plumt/permission/compose/PermissionFlowStep {
+}
+
+public final class net/plumt/permission/compose/PermissionFlowStep$None : net/plumt/permission/compose/PermissionFlowStep {
+	public static final field $stable I
+	public static final field INSTANCE Lnet/plumt/permission/compose/PermissionFlowStep$None;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/plumt/permission/compose/PermissionFlowStep$Rationale : net/plumt/permission/compose/PermissionFlowStep {
+	public static final field $stable I
+	public static final field INSTANCE Lnet/plumt/permission/compose/PermissionFlowStep$Rationale;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/plumt/permission/compose/PermissionFlowStep$Requirement : net/plumt/permission/compose/PermissionFlowStep {
+	public static final field $stable I
+	public static final field INSTANCE Lnet/plumt/permission/compose/PermissionFlowStep$Requirement;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class net/plumt/permission/compose/PermissionFlowStep$Settings : net/plumt/permission/compose/PermissionFlowStep {
+	public static final field $stable I
+	public static final field INSTANCE Lnet/plumt/permission/compose/PermissionFlowStep$Settings;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class net/plumt/permission/compose/PermissionRequestState {
+	public abstract fun confirmFlowStep ()V
+	public abstract fun dismissFlowStep ()V
+	public abstract fun getFlowStep ()Lnet/plumt/permission/compose/PermissionFlowStep;
+	public abstract fun getRequirementStatuses ()Ljava/util/Map;
+	public abstract fun isRequesting ()Z
+	public abstract fun launchFlow ()V
+	public abstract fun launchFlow (Lnet/plumt/permission/SettingsPolicy;)V
+	public abstract fun launchRequest ()V
+	public abstract fun openAppSettings ()V
+	public abstract fun refresh ()V
+}
+
+public abstract interface class net/plumt/permission/compose/PermissionState : net/plumt/permission/compose/PermissionRequestState {
+	public abstract fun getSpec ()Lnet/plumt/permission/PermissionSpec;
+	public abstract fun getStatus ()Lnet/plumt/permission/PermissionStatus;
+}
+

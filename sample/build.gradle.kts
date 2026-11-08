@@ -6,7 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
 }
 
-// 발행하지 않는 확인용 앱. SDK 를 의존한 앱의 병합 매니페스트가 앱이 선언한 것만 담는지, core 의 lint 검사가 실제 앱 lint 에 붙는지 본다
+// 발행하지 않는 확인용 앱. SDK 를 의존한 앱의 병합 매니페스트가 앱이 선언한 것만 담는지, permission 의 lint 검사가 실제 앱 lint 에 붙는지 본다
 android {
     namespace = "net.plumt.permission.sample"
     compileSdk = 36
@@ -24,8 +24,16 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 
+    buildTypes {
+        // 소비 앱처럼 R8 로 줄여 consumer-rules.pro 만으로 충분한지 본다(서명 없는 release 산출물)
+        release {
+            isMinifyEnabled = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+        }
+    }
+
     lint {
-        // core 의 lint.jar 검사가 오류를 내면 빌드가 멈춰야 한다
+        // permission 의 lint.jar 검사가 오류를 내면 빌드가 멈춰야 한다
         abortOnError = true
         checkDependencies = true
     }
@@ -38,8 +46,8 @@ kotlin {
 }
 
 dependencies {
-    implementation(project(":core"))
-    implementation(project(":compose"))
+    implementation(project(":permission"))
+    implementation(project(":permission-compose"))
 }
 
 /**

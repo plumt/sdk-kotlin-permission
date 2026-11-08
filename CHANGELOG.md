@@ -1,10 +1,48 @@
 # Changelog
 
-모듈별로 적는다. 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/), 버전은 [SemVer](https://semver.org/lang/ko/) 이다.
+아티팩트별로 적는다(0.0.x 의 `core`·`compose` 는 0.1.0 에서 `permission`·`permission-compose` 로 이름이 바뀌었다). 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/), 버전은 [SemVer](https://semver.org/lang/ko/) 이다.
 
-## core
+## permission
 
 ### [Unreleased]
+
+### [0.1.0] - 2026-11-08
+
+#### 깨짐
+- 좌표가 바뀌었다 — `net.plumt.permission:core` → `net.plumt.permission:permission`. 태그는 `permission-v<버전>`, 모듈 디렉터리도 `permission`
+- 공개 `enum` 을 없앴다
+  - 닫힌 집합은 `sealed` 로: `SettingsPolicy.NEVER·PROMPT·DIRECT` → `SettingsPolicy.Never·Prompt·Direct`,
+    `ManifestCheck.THROW_IF_DEBUGGABLE·ALWAYS_THROW·OFF` → `ManifestCheck.ThrowIfDebuggable·AlwaysThrow·Off`, `GrantLevel.FULL·PARTIAL·NONE` → `GrantLevel.Full·Partial·None`
+  - 값이 늘 수 있는 열린 집합은 일반 클래스로(상수 이름은 그대로): `PartialAccess`·`UnsupportedReason`·`AppRole`. `values()`·`entries`·`ordinal`·`valueOf` 가 없어졌고,
+    `when` 에는 `else` 를 둔다. `AppRole` 은 `name` 대신 `roleName` 으로 가른다
+- 공개 `data class` 를 일반 클래스(+`equals`/`hashCode`/`toString`)로 바꿨다 — `PermissionStatus.NotApplicable·Partial·Denied`, `RequestResult.Completed·NoActivity`,
+  `RequirementStatus.PermissionRequired·Unsupported` 의 `copy`·`componentN` 이 없어졌다(구조 분해 선언을 쓰던 곳은 속성을 읽는다)
+- `PermissionSpec` 이 `sealed interface` 가 됐다 — 직접 구현하던 명세는 `RuntimePermissionSpec`·`SpecialPermissionSpec` 을 구현한다(그전에도 그 밖의 구현은 `IllegalArgumentException` 이었다)
+- `PermissionManager` 에 콜백 `request(activity, specs, …, onResult)` 가 늘었다 — 직접 구현한 가짜는 구현해야 한다(대신 `FakePermissionManager` 를 쓴다)
+- 공개 인터페이스의 기본 구현을 Java 기본 메서드로만 낸다(`-jvm-default=no-compatibility`) — `*$DefaultImpls` 클래스가 없어졌다(Java 에서 부르던 경우만 해당)
+- `turnScreenOn` 의 적용 여부가 앱 targetSdk 와 무관해졌다 — API 36 기기면 targetSdk 35 앱에도 `NotApplicable` 이 아니다(판정과 적용 여부를 같은 기준(기기 API)으로 맞췄다)
+- 진행 중 흐름의 저장 상태가 설정 이동 정책을 이름으로 남긴다 — 0.0.x 가 남긴 흐름을 0.1.0 이 이어받으면 정책은 `Never` 로 읽는다
+
+#### 추가
+- 콜백 요청 `PermissionManager.request(activity, specs, requirements, settingsPolicy) { result -> }` 와 취소 핸들 `RequestHandle` — suspend 요청을 관리자의 메인 스레드 코루틴에서 돌린다.
+  등록 시점 제약이 없고, 결과는 메인 스레드로 한 번 온다. 인자·매니페스트 실수는 호출 즉시 던진다
+- 권한 하나 편의 오버로드 — `request(spec)`·`request(activity, spec)`(suspend), `request(activity, spec) { }`(콜백)
+- 테스트용 `FakePermissionManager` — 상태·요청 뒤 결과를 정하고 요청 기록을 본다. 기기·Robolectric 없이 돈다
+- 역할 `AppRole.EMERGENCY`(29+)·`NOTES`(34+)·`WALLET`(35+)과 `AppRole.minSdk`, 새 플랫폼 역할을 만드는 `AppRole(roleName, requestable, minSdk)`
+- 런타임 권한 `PermissionSpecs.localNetwork`(Android 17 / API 37, targetSdk 37+ 의 `ACCESS_LOCAL_NETWORK`)
+- 특수 권한 `PermissionSpecs.autofillService`(26+, 자동완성 서비스 선택)·`inputMethod`(입력기 사용 설정)·`bubbles`(30+, 앱 말풍선 허용)
+- 요구 조건 `SystemRequirements.notificationChannelEnabled(channelId)` — 앱 알림·채널 중요도·채널 그룹 차단으로 판정하고, 채널을 만들지 않았으면 `Unmet`
+- `RuntimePermissionSpec.declaredPermissions(environment)` — 설치 시 부여되는 짝 권한까지 담은 선언 정본(기본은 `permissions`). 블루투스는 API 30 이하 `BLUETOOTH`·`BLUETOOTH_ADMIN` 을 더한다
+- `PartialAccess(name)`·`UnsupportedReason(name)` 생성자 — 직접 만든 명세·요구 조건이 새 값을 쓴다
+- lint 선언표와 명세의 일치 테스트(API 23~37 × targetSdk), README 지원 범위 목록의 일치 테스트 — 어긋나면 빌드가 실패한다
+
+#### 바뀜
+- `undeclaredPermissions` 가 `declaredPermissions` 를 본다 — API 30 이하에서 `bluetooth` 의 `BLUETOOTH`·`BLUETOOTH_ADMIN` 누락도 알린다
+- lint: targetSdk 조건이 있는 선언(`ACCESS_LOCAL_NETWORK`)은 앱 targetSdk 37 이상에서만 요구한다. `bubbles`·`autofillService`·`inputMethod`·`notificationChannelEnabled` 를 표에 더했다
+- 특수 권한 구현을 기준대로 나눴다 — 설정 토글(`SettingsSpecs`)과 앱 컴포넌트·시스템 동의(`ComponentSpecs`), 런타임 권한은 `RuntimeSpecs` 한 곳. 앱 작업 조회 함수를 하나로 합쳤다(공개 API 변화 없음)
+- 파일 단위 `@SuppressLint("NewApi")` 를 없애고 API 분기를 `@RequiresApi` 함수로 격리했다(동작 변화 없음)
+- README 의 사용법을 `PermissionManager` 하나(suspend·콜백·Compose)로 모으고 요청기는 "고급" 으로 옮겼다. API 분기 표에 API 37 열을 더했다
+
 
 ### [0.0.2] - 2026-11-07
 
@@ -86,9 +124,21 @@
 - 수정: 대략적 위치를 가진 채 정밀 승격을 "대략적인 위치 계속 사용" 으로 거절한 뒤 영구 거부를 놓치던 문제 — 선택지 판정을
   "이 대화상자에서 새로 허용된 권한" 으로 좁혔다. 요청 전부터 허용돼 있던 권한은 선택의 증거가 아니다. 요청 전 허용 상태는 저장 상태에도 남긴다
 
-## compose
+## permission-compose
 
 ### [Unreleased]
+
+### [0.1.0] - 2026-11-08
+
+#### 깨짐
+- 좌표가 바뀌었다 — `net.plumt.permission:compose` → `net.plumt.permission:permission-compose`(`permission` 0.1.0 을 `api` 로 가져온다). 태그는 `permission-compose-v<버전>`
+- `PermissionFlowStep` 이 `sealed interface` 가 됐다 — `NONE·RATIONALE·SETTINGS·REQUIREMENT` → `None·Rationale·Settings·Requirement`
+- `permission` 0.1.0 의 깨짐(`SettingsPolicy` 등)이 그대로 드러난다
+
+#### 바뀜
+- 흐름 저장 상태의 단계·정책을 고정 번호로 남긴다 — 번호가 0.0.x 의 순서 번호와 같아 옛 저장 상태도 읽는다
+- 상태는 `permission` 의 같은 요청 흐름(요청기) 위에 안내 단계만 더한 어댑터임을 문서에 밝혔다(동작 변화 없음)
+
 
 ### [0.0.2] - 2026-11-07
 

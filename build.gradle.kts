@@ -11,7 +11,7 @@ plugins {
 }
 
 apiValidation {
-    // 발행하지 않는 lint 검사 모듈 — core aar 안의 lint.jar 로만 나간다
+    // 발행하지 않는 lint 검사 모듈 — permission aar 안의 lint.jar 로만 나간다
     ignoredProjects.add("lint")
     // 발행하지 않는 확인용 앱 — 병합 매니페스트·lint 검사를 실제 앱 빌드로 확인한다
     ignoredProjects.add("sample")
